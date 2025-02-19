@@ -10,7 +10,9 @@ class TaskDistributor:
         component_id: str = task.responsible
         
         if not self.components.get(component_id, None):
+            print(f"Creating component {component_id}")
             self.components[component_id] = Component(component_id)
             
         self.components[component_id].add_task(task)
+        print('Task added to the queue!')
         

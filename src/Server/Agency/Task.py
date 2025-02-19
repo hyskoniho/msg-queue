@@ -8,6 +8,5 @@ class Task:
     
     def execute(self) -> None:
         """Método para simular a execução da tarefa."""
-        time.sleep(random.randint(1, 5))
-        print("Executing...")
-        subprocess.run(["msg", "*", f"Task {self.task_id} executed! It's your turn, {self.responsible}! Here's the description: {self.description}"])
+        time.sleep(random.randint(1, 3))
+        # subprocess.Popen([self.description])

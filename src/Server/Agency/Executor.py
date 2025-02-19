@@ -1,5 +1,4 @@
-import multiprocessing.spawn
-import queue, threading, multiprocessing, platform#, requests
+import threading, multiprocessing, platform#, requests
 from datetime import datetime, timedelta
 from .Task import Task
 
@@ -7,12 +6,15 @@ if 'windows' not in platform.platform().lower():
     multiprocessing.set_start_method('fork', force=True)
 
 class Component:
-    def __init__(self, name: str, max_executors: int = 1, tolerancy: float = 0.1) -> None:
+    def __init__(self, name: str, max_executors: int = 3, tolerancy: float = 0.1) -> None:
+        manager = multiprocessing.Manager()
+        
         self.name: str = name
-        self.task_queue: queue.Queue = queue.Queue()
+        self.task_queue = manager.Queue()
         self.executors: list[threading.Thread] = []
         self.max_executors: int = max_executors
         self.tolerancy: float = tolerancy
+        
         self.process: multiprocessing.Process = multiprocessing.Process(target=self.main, daemon=True)
         self.process.start()
         
@@ -28,11 +30,6 @@ class Component:
     def add_task(self, task: Task) -> None:
         """Adicionar tarefa à fila do componente"""
         self.task_queue.put(task)
-    
-    def terminate(self) -> None:
-        """Finalizar executores"""
-        self.process.terminate()
-        del self.executors
     
     def main(self):
         """Processar tarefa da fila"""
@@ -54,20 +51,30 @@ class Component:
                     break
             
             last_queue_len: int = current_queue_len
+            self.remove_unused_executors()
+    
+    def remove_unused_executors(self) -> None:
+        """Remover executores inativos"""
+        for executor in self.executors:
+            if not executor.is_alive():
+                self.executors.remove(executor)
         
     def _add_executor(self) -> None:
         """Add an executor thread to process the tasks"""
-        new_executor: Executor = Executor(self.task_queue)
+        new_executor: Executor = Executor(self.task_queue, self.name)
         executor_thread: threading.Thread = threading.Thread(target=new_executor.main, daemon=True)
         self.executors.append(executor_thread)
         executor_thread.start()
 
 class Executor:
-    def __init__(self, queue_reference: queue.Queue) -> None:
+    def __init__(self, queue_reference, component_reference) -> None:
         self.queue = queue_reference
+        self.component = component_reference
                 
     def main(self) -> None:
         """The worker that processes tasks from the queue"""
         while not self.queue.empty():
             task = self.queue.get()
             task.execute()
+            print(f"[C-{self.component}] Task {task.task_id} executed!")
+            print(f"[C-{self.component}] {self.queue.qsize()} tasks remaining...")

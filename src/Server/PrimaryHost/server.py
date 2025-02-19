@@ -1,10 +1,19 @@
 from flask import Flask, request, jsonify
-from Agency.Task import Task
-from Utils.socket_connector import send_task, is_socket_alive
-from .tools import connect_to_socket, verify_content, get_task_data
+from .tools import verify_content, get_task_data
+
+try:
+    from Agency.Task import Task
+    from Utils.socket_client import start_connection, send_task, is_socket_alive
+    
+except ModuleNotFoundError:
+    import sys, os
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+    from Agency.Task import Task
+    from Utils.socket_client import start_connection, send_task, is_socket_alive
 
 app = Flask(__name__)
-cs = connect_to_socket()
+cs = start_connection()
 
 @app.route('/new-task', methods=['POST'])
 def receive_data():
@@ -18,11 +27,10 @@ def receive_data():
     if not verify_content(content):
         return jsonify({'error': 'Invalid content'}), 400
 
-    # Creating your Task object from the content
-    task: Task = Task(**get_task_data(content))  # You need to adjust this to match how your Task is constructed
+    task: Task = Task(**get_task_data(content))  
 
     try:
-        if not cs or not is_socket_alive(cs): cs = connect_to_socket()
+        if not cs or not is_socket_alive(cs): cs = start_connection()
         send_task(cs, task)
         
     except Exception as e:

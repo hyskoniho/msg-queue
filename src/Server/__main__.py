@@ -1,8 +1,7 @@
 from socket import socket
 from multiprocessing import freeze_support
-from Utils.socket_connector import start_connection, get_task
+from Utils import *
 from Agency import *
-from run import *
 
 def main():
     cs: socket = start_connection(
@@ -14,6 +13,7 @@ def main():
     distributor = TaskDistributor()
 
     while True:
+        print("Waiting for tasks...")
         task: Task = get_task(cs)
         if task:
             distributor.distribute_task(task)
@@ -22,4 +22,5 @@ def main():
 
 if __name__ == '__main__':
     freeze_support()
+    start()
     main()
