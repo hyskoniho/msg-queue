@@ -6,7 +6,7 @@ if 'windows' not in platform.platform().lower():
     multiprocessing.set_start_method('fork', force=True)
 
 class Component:
-    def __init__(self, name: str, max_executors: int = 3, tolerancy: float = 0.1) -> None:
+    def __init__(self, name: str, max_executors: int = 15, tolerancy: float = 0.1) -> None:
         manager = multiprocessing.Manager()
         
         self.name: str = name
@@ -60,21 +60,21 @@ class Component:
                 self.executors.remove(executor)
         
     def _add_executor(self) -> None:
-        """Add an executor thread to process the tasks"""
-        new_executor: Executor = Executor(self.task_queue, self.name)
+        """Adicinar uma thread de executor ao componente"""
+        new_executor: Executor = Executor(self.task_queue, self.name, len(self.executors)+1)
         executor_thread: threading.Thread = threading.Thread(target=new_executor.main, daemon=True, name=f'T-{self.name}-{len(self.executors)+1}')
         self.executors.append(executor_thread)
         executor_thread.start()
 
 class Executor:
-    def __init__(self, queue_reference, component_reference) -> None:
+    def __init__(self, queue_reference, component_reference, exc_reference) -> None:
         self.queue = queue_reference
         self.component = component_reference
+        self.exc = exc_reference
                 
     def main(self) -> None:
         """The worker that processes tasks from the queue"""
         while not self.queue.empty():
             task = self.queue.get()
             task.execute()
-            print(f"[C-{self.component}] Task {task.task_id} executed!")
-            print(f"[C-{self.component}] {self.queue.qsize()} tasks remaining...")
+            print(f"[C-{self.component}-{self.exc}] Task {task.task_id} executed! ({self.queue.qsize()}) tasks remaining...")
