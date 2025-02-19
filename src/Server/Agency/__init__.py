@@ -2,4 +2,4 @@ from .Executor import *
 from .Task import *
 from .Distributor import *
 
-__all__ = ['Department', 'Task', 'TaskDistributor']
+__all__ = ['Component', 'Executor', 'Task', 'TaskDistributor']
