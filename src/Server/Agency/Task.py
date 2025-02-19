@@ -8,5 +8,6 @@ class Task:
     
     def execute(self) -> None:
         """Método para simular a execução da tarefa."""
-        time.sleep(random.randint(1, 3))
+        # time.sleep(random.randint(1, 3))
+        pass
         # subprocess.Popen([self.description])

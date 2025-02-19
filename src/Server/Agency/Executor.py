@@ -15,7 +15,7 @@ class Component:
         self.max_executors: int = max_executors
         self.tolerancy: float = tolerancy
         
-        self.process: multiprocessing.Process = multiprocessing.Process(target=self.main, daemon=True)
+        self.process: multiprocessing.Process = multiprocessing.Process(target=self.main, daemon=True, name=f'P-{self.name}')
         self.process.start()
         
     def __bool__(self) -> bool:
@@ -62,7 +62,7 @@ class Component:
     def _add_executor(self) -> None:
         """Add an executor thread to process the tasks"""
         new_executor: Executor = Executor(self.task_queue, self.name)
-        executor_thread: threading.Thread = threading.Thread(target=new_executor.main, daemon=True)
+        executor_thread: threading.Thread = threading.Thread(target=new_executor.main, daemon=True, name=f'T-{self.name}-{len(self.executors)+1}')
         self.executors.append(executor_thread)
         executor_thread.start()
 
