@@ -36,9 +36,9 @@ class Component:
         while True:
             current_queue_len: int = self.task_queue.qsize()
             
-            if (current_queue_len > 0) and\
-                (current_queue_len > (last_queue_len + (last_queue_len * self.tolerancy))) and \
-                    (len(self.executors) < self.max_executors):
+            if ((current_queue_len > 0) and
+                (current_queue_len > (last_queue_len + (last_queue_len * self.tolerancy))) and
+                    (len(self.executors) < self.max_executors)) or (len(self.executors) == 0):
                 self._add_executor()
             
             elif current_queue_len == 0:
