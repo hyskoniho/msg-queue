@@ -1,9 +1,6 @@
-import threading, multiprocessing, platform#, requests
+import threading, multiprocessing#, requests
 from datetime import datetime, timedelta
 from .Task import Task
-
-if 'windows' not in platform.platform().lower():
-    multiprocessing.set_start_method('fork', force=True)
 
 class Component:
     def __init__(self, name: str, max_executors: int = 15, tolerancy: float = 0.1) -> None:
@@ -75,6 +72,12 @@ class Executor:
     def main(self) -> None:
         """The worker that processes tasks from the queue"""
         while not self.queue.empty():
-            task = self.queue.get()
-            task.execute()
-            print(f"[C-{self.component}-{self.exc}] Task {task.task_id} executed! ({self.queue.qsize()}) tasks remaining...")
+            try:
+                task = self.queue.get()
+                task.execute()
+                print(f"[C-{self.component}-{self.exc}] Task {task.task_id} executed! ({self.queue.qsize()}) tasks remaining...")
+            except Exception as e:
+                print(f"[C-{self.component}-{self.exc}] Error: {str(e)}")
+                continue
+            else:
+                task.save()

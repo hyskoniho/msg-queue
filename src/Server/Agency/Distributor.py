@@ -7,7 +7,7 @@ class TaskDistributor:
 
     def distribute_task(self, task: Task) -> None:
         """Distribuir tarefa para o departamento disponível"""
-        component_id: str = task.responsible
+        component_id: str = task.component
         
         if not self.components.get(component_id, None):
             print(f"Creating component {component_id}")
